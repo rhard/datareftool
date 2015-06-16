@@ -12,10 +12,10 @@ before_install:
  - if [ "$CXX" = "clang++" ]; then sudo apt-get install clang-3.5; fi
  - sudo apt-get install libboost-system-dev libboost-filesystem-dev libboost-iostreams-dev
  - sudo apt-get install libx11-dev # libboost-all-dev
- - if [ "$CC" = "gcc" ]; then sudo update-alternatives --set gcc /usr/bin/gcc-4.9; fi
- - if [ "$CC" = "clang" ]; then CXX=/usr/bin/clang-3.5; fi
- - if [ "$CXX" = "g++" ]; then sudo update-alternatives --set g++ /usr/bin/g++-4.9; fi
- - if [ "$CXX" = "clang++" ]; then CXX=/usr/bin/clang++-3.5; fi
+ - if [ "$CC" = "gcc" ]; then CC=gcc-4.9; fi
+ - if [ "$CC" = "clang" ]; then CC=clang-3.5; fi
+ - if [ "$CXX" = "g++" ]; then CXX=g++-4.9; fi
+ - if [ "$CXX" = "clang++" ]; then CXX=clang++-3.5; fi
  - cmake --version
  - $CC --version
  - $CXX --version
