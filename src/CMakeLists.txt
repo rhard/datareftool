@@ -51,7 +51,7 @@ if(APPLE)
 	set(Boost_USE_MULTITHREADED ON)
 endif()
 
-find_package(Boost 1.54.0 REQUIRED COMPONENTS filesystem system iostreams)
+find_package(Boost 1.46.0 REQUIRED COMPONENTS filesystem system iostreams)
 include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
 target_link_libraries(plugin ${Boost_LIBRARIES})
 
