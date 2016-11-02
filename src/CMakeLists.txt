@@ -1,121 +1,16 @@
-project(datareftool CXX)
+SET(SRC 
+	"${CMAKE_CURRENT_SOURCE_DIR}/about_window.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/plugin.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/viewer_window.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/datarefs.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/find_datarefs_in_files.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/prefs.cpp" PARENT_SCOPE)
+SET(HDR 
+	"${CMAKE_CURRENT_SOURCE_DIR}/about_window.h"
+	"${CMAKE_CURRENT_SOURCE_DIR}/viewer_window.h"
+	"${CMAKE_CURRENT_SOURCE_DIR}/datarefs.h"
+	"${CMAKE_CURRENT_SOURCE_DIR}/clipboard.h"
+	"${CMAKE_CURRENT_SOURCE_DIR}/find_datarefs_in_files.h"
+	"${CMAKE_CURRENT_SOURCE_DIR}/prefs.h" PARENT_SCOPE)
 
-SET(SRC about_window.cpp plugin.cpp viewer_window.cpp datarefs.cpp find_datarefs_in_files.cpp prefs.cpp)
-SET(HDR about_window.h viewer_window.h datarefs.h clipboard.h find_datarefs_in_files.h prefs.h)
-
-SET(SRC_PLUGIN_EXAMPLE plugin_custom_dataref.cpp)
-
-
-if(APPLE)
-	list(APPEND SRC "clipboard_mac.mm")
-elseif(WIN32)
-	list(APPEND SRC "clipboard_win.cpp")
-else()
-	list(APPEND SRC "clipboard_linux.cpp")
-endif()
-
-SET(ALL_SRC ${SRC} ${HDR})
-LIST(SORT ALL_SRC)
-
-SOURCE_GROUP(src FILES ${ALL_SRC})
-
-if(APPLE)
-	add_executable(plugin ${ALL_SRC})
-	add_executable(plugin_custom_dataref ${SRC_PLUGIN_EXAMPLE})
-elseif(UNIX)
-	add_library(plugin SHARED ${ALL_SRC})
-	add_library(plugin_custom_dataref SHARED ${SRC_PLUGIN_EXAMPLE})
-elseif(WIN32)
-	add_library(plugin MODULE ${ALL_SRC})
-	add_library(plugin_custom_dataref MODULE ${SRC_PLUGIN_EXAMPLE})
-	SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MD")
-	SET(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} /MD")
-	SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MDd")
-endif()
-
-#compiler flags
-if(WIN32)
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DCHECK_RESULT_USED=_Check_return_")
-	add_definitions(-DNOMINMAX)
-else()
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra --std=c++11")
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DCHECK_RESULT_USED=\"__attribute__ ((warn_unused_result))\"")
-endif()
-
-#libraries
-set(Boost_USE_STATIC_LIBS ON)
-set(Boost_USE_MULTITHREADED ON)
-set(Boost_DEBUG ON)
-if(WIN32)
-	set(Boost_USE_STATIC_RUNTIME OFF)
-	add_definitions( -DBOOST_ALL_NO_LIB ) # disable auto linking
-endif()
-
-find_package(Boost 1.54.0 REQUIRED COMPONENTS filesystem system iostreams)
-include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
-target_link_libraries(plugin ${Boost_LIBRARIES})
-
-if(UNIX)
-	include_directories(SYSTEM "../lib/xplane_sdk/CHeaders/XPLM/" "../lib/xplane_sdk/CHeaders/Widgets/" "../lib/xplane_sdk/CHeaders/Wrappers/")
-endif(UNIX)
-if(APPLE)
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -arch x86_64")
-	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -arch x86_64")
-endif(APPLE)
-if(WIN32)
-	include_directories(SYSTEM "..\\lib\\xplane_sdk\\CHeaders\\XPLM" "..\\lib\\xplane_sdk\\CHeaders\\Widgets" "..\\lib\\xplane_sdk\\CHeaders\\Wrappers")
-endif(WIN32)
-
-# X-Plane stuff
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DXPLM200=1 -DXPLM210=1")
-if(APPLE)
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DAPL=1 -DIBM=0 -DLIN=0")
-elseif(UNIX)
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DAPL=0 -DIBM=0 -DLIN=1")
-elseif(WIN32)
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DAPL=0 -DIBM=1 -DLIN=0 -D_CRT_SECURE_NO_WARNINGS /bigobj")
-endif()
-
-#linking
-link_libraries(m)
-if(APPLE)
-	set(CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_PATH} ../lib/xplane_sdk/Libraries/Mac/)
-	FIND_LIBRARY(XPLM_LIBRARY XPLM ../lib/xplane_sdk/Libraries/Mac/)
-	FIND_LIBRARY(XPWIDGETS_LIBRARY XPWidgets ../lib/xplane_sdk/Libraries/Mac/)
-	target_link_libraries(plugin ${XPLM_LIBRARY} ${XPWIDGETS_LIBRARY})
-	target_link_libraries(plugin_custom_dataref ${XPLM_LIBRARY} ${XPWIDGETS_LIBRARY})
-elseif(UNIX)
-#	target_link_libraries(plugin "-lGL" "-lGLU")
-elseif(WIN32)
-	set(CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_PATH} "..\\lib\\xplane_sdk\\Libraries\\Win\\")
-	FIND_LIBRARY(XPLM_LIBRARY XPLM_64 "..\\lib\\xplane_sdk\\Libraries\\Win\\")
-	FIND_LIBRARY(XPWIDGETS_LIBRARY XPWidgets_64 "..\\lib\\xplane_sdk\\Libraries\\Win\\")
-	target_link_libraries(plugin ${XPLM_LIBRARY} ${XPWIDGETS_LIBRARY})
-	target_link_libraries(plugin_custom_dataref ${XPLM_LIBRARY} ${XPWIDGETS_LIBRARY})
-endif()
-
-#output
-SET_TARGET_PROPERTIES(plugin PROPERTIES PREFIX "")
-SET_TARGET_PROPERTIES(plugin PROPERTIES SUFFIX "")
-SET_TARGET_PROPERTIES(plugin_custom_dataref PROPERTIES PREFIX "")
-SET_TARGET_PROPERTIES(plugin_custom_dataref PROPERTIES SUFFIX "")
-if(APPLE)
-	set(PLUGIN_OUTPUT_FILENAME "mac.xpl")
-	SET_TARGET_PROPERTIES(plugin PROPERTIES LINK_FLAGS "${CMAKE_SHARED_LINKER_FLAGS}  -fPIC -fvisibility=hidden -bundle -framework OpenGL -framework Cocoa")
-	SET_TARGET_PROPERTIES(plugin_custom_dataref PROPERTIES LINK_FLAGS "${CMAKE_SHARED_LINKER_FLAGS}  -fPIC -fvisibility=hidden -bundle")
-elseif(UNIX)
-	set(PLUGIN_OUTPUT_FILENAME "lin.xpl")
-	SET_TARGET_PROPERTIES(plugin PROPERTIES LINK_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -rdynamic -nodefaultlibs -undefined_warning -fPIC -fvisibility=hidden")
-	SET_TARGET_PROPERTIES(plugin_custom_dataref PROPERTIES LINK_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -rdynamic -nodefaultlibs -undefined_warning -fPIC -fvisibility=hidden")
-elseif(WIN32)
-	set(PLUGIN_OUTPUT_FILENAME "win.xpl")
-endif()
-
-
-set_target_properties(plugin PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin/datareftool" )
-set_target_properties(plugin PROPERTIES LIBRARY_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin/datareftool" )
-set_target_properties(plugin PROPERTIES OUTPUT_NAME "${PLUGIN_OUTPUT_FILENAME}")
-
-set_target_properties(plugin_custom_dataref PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin/datareftool_custom_dataref_example" )
-set_target_properties(plugin_custom_dataref PROPERTIES LIBRARY_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin/datareftool_custom_dataref_example" )
-set_target_properties(plugin_custom_dataref PROPERTIES OUTPUT_NAME "${PLUGIN_OUTPUT_FILENAME}")
+SET(SRC_PLUGIN_EXAMPLE "${CMAKE_CURRENT_SOURCE_DIR}/plugin_custom_dataref.cpp" PARENT_SCOPE)
