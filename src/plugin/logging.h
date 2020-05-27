@@ -3,7 +3,7 @@
 #include <ostream>
 #include <streambuf>
 
-#include "XPLMUtilities.h"
+#include "easylogging++.h"
 
 /// Logging class for X-Plane.
 /// @author Lee C Baker
@@ -17,14 +17,17 @@ class XPLoggingBuffer : public std::streambuf {
     bool enabled = true;
 protected:
 	virtual int_type overflow (int_type c) {
+	    static std::stringstream data;
 	    if (c != EOF && enabled) {
-			if(next_has_prefix) {
-				XPLMDebugString(prefix_.c_str());
-			}
-			next_has_prefix = (static_cast<char>(c) == '\n');
-
-            char msg[2] = {static_cast<char>(c), 0};
-            XPLMDebugString(msg);
+//			if(next_has_prefix) {
+//				data << prefix_;
+//			}
+//            if (static_cast<char>(c) == '\n') {
+//                LOG(INFO) << data.str();
+//                data.str(std::string());
+//            } else {
+//                data << static_cast<char>(c);
+//            }
 	    }
 	    return c;
 	}

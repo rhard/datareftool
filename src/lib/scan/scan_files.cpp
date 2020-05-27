@@ -7,6 +7,8 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/iostreams/device/mapped_file.hpp>
 
+#include "cctype"
+
 std::vector<std::string> loadListFile(std::ostream & log, const boost::filesystem::path & filename) {
     log << "Loading datarefs from path " << filename << "\n";
     
